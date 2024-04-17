@@ -44,6 +44,10 @@
     "noFallthroughCasesInSwitch": true,
     "useDefineForClassFields": true,
     
+    "plugins": [
+      { "name": "typescript-plugin-css-modules" }
+    ]
+    
   },
   "references": [{ "path": "./tsconfig.node.json" }]
 }

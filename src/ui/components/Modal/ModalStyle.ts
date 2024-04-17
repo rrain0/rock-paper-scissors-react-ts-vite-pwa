@@ -1,6 +1,6 @@
 import { css } from '@emotion/react'
-import { EmotionCommon } from 'src/ui/styles/EmotionCommon.ts'
-import fixedBottom = EmotionCommon.fixedBottom
+import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
+import fixed = EmotionCommon.fixed
 
 
 
@@ -10,8 +10,7 @@ export namespace ModalStyle {
   
   
   export const modal = css`
-    ${fixedBottom};
-    height: 100dvh;
+    ${fixed};
     background: #0000009a;
     z-index: 1;
 

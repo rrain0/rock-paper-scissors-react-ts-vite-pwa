@@ -2,10 +2,10 @@ import { css, keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Pages } from 'src/ui/components/Pages/Pages.ts'
+import { Pages } from 'src/ui/components/Pages/Pages'
 import Button from 'src/ui/elements/Button/Button.tsx'
 import { ButtonStyle } from 'src/ui/elements/Button/ButtonStyle.ts'
-import { EmotionCommon } from 'src/ui/styles/EmotionCommon.ts'
+import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import center = EmotionCommon.center
 import abs = EmotionCommon.abs
 import centerAll = EmotionCommon.centerAll
@@ -19,43 +19,40 @@ import rightChar from '@img/char-right.png'
 const MainMenu =
 React.memo(
 ()=>{
-  return <Page>
-    <Rays/>
-    <Content>
+  return <Pages.Page>
+    <Pages.ContentClampAspectRatio>
+      <BgcColor/>
+      <BgcRays/>
+      
       <LeftChar src={leftChar}/>
       <RightChar src={rightChar}/>
       <Link to={'/tournament'}>
         <Button css={ButtonStyle.button}>Турнир</Button>
       </Link>
-    </Content>
-  </Page>
+    </Pages.ContentClampAspectRatio>
+  </Pages.Page>
 })
 export default MainMenu
 
 
 
-const Page = styled.main`
-  ${Pages.fillViewport};
-  background: #f6bd15;
-  position: relative;
+
+
+const BgcColor = styled.div`
+  ${abs};
+  //background: #f6bd15;
+  background: #004bbc;
   ${center};
 `
-
-
-const Rays = styled.div`
+const BgcRays = styled.div`
   ${abs};
-  background: #ff6c02;
+  //background: #ff6c02;
+  background: #146dcc;
   mask-image: url(${rays});
   mask-mode: alpha;
   mask-position: center;
   mask-size: cover;
   ${center};
-`
-
-const Content = styled.div`
-  ${abs};
-  ${centerAll};
-  overflow: hidden;
 `
 
 

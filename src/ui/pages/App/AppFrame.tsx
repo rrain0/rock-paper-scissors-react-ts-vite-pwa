@@ -1,7 +1,8 @@
-import React from 'react'
-import LandscapeWarning from 'src/ui/components/LandscapeWarning/LandscapeWarning.tsx'
+import React, { useLayoutEffect, useRef } from 'react'
+import { Pages } from 'src/ui/components/Pages/Pages.tsx'
+import PortraitWarning from 'src/ui/components/PortraitWarning/PortraitWarning'
 import AppRouting from 'src/ui/pages/App/AppRouting'
-import { EmotionCommon } from 'src/ui/styles/EmotionCommon.ts'
+import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import contents = EmotionCommon.contents
 
 
@@ -12,7 +13,7 @@ React.memo(
 ()=>{
   return <div css={contents} id='app-frame'>
     <AppRouting/>
-    <LandscapeWarning/>
+    <PortraitWarning/>
   </div>
 })
 export default AppFrame

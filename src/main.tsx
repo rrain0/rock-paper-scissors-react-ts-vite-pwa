@@ -1,8 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from 'src/ui/pages/App/App.tsx'
-import 'src/ui/styles/reset.css'
-import 'src/ui/styles/fonts.css'
+import 'src/ui/style/reset.css'
+import 'src/ui/style/fonts.css'
 
 
 ReactDOM.createRoot(document.getElementById('root')!)

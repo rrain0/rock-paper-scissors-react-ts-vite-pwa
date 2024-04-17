@@ -1,5 +1,5 @@
 import { css } from '@emotion/react'
-import { EmotionCommon } from 'src/ui/styles/EmotionCommon.ts'
+import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import React, { useImperativeHandle, useRef } from "react"
 import resetButton = EmotionCommon.resetButton
 import row = EmotionCommon.row

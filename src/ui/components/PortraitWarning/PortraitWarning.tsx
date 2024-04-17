@@ -1,20 +1,22 @@
 import styled from '@emotion/styled'
-import { useViewportOrientation } from 'src/util/react/useViewportOrientation.ts'
+import { useViewportDimens } from '@util/react/useViewportDimens.ts'
 import React from 'react'
 import Modal from 'src/ui/components/Modal/Modal.tsx'
 import ModalPortal from 'src/ui/components/Modal/ModalPortal.tsx'
 import { ModalStyle } from 'src/ui/components/Modal/ModalStyle.ts'
-import { EmotionCommon } from 'src/ui/styles/EmotionCommon.ts'
-import centerAll = EmotionCommon.centerAll
+import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import turnToLandImg from '@img/turn-to-landscape-with-text.png'
+import center = EmotionCommon.center
 
 
 
-const LandscapeWarning =
+const PortraitWarning =
 React.memo(
 ()=>{
   
-  const { isPortrait } = useViewportOrientation()
+  const { isPortrait } = useViewportDimens()
+  
+  //console.log('isPortrait', isPortrait)
   
   return <>
     { isPortrait && <ModalPortal>
@@ -26,7 +28,7 @@ React.memo(
     </ModalPortal> }
   </>
 })
-export default LandscapeWarning
+export default PortraitWarning
 
 
 
@@ -34,13 +36,13 @@ const Frame = styled.div`
   width: 100%;
   height: 100%;
   background: white;
-  ${centerAll};
+  ${center};
 `
 
 
 const TurnToLandImg = styled.img`
   place-self: stretch;
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 `
