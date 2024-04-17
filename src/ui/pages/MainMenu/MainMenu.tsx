@@ -1,4 +1,4 @@
-import { css, keyframes } from '@emotion/react'
+import { keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
 import React from 'react'
 import { Link } from 'react-router-dom'
@@ -8,7 +8,6 @@ import { ButtonStyle } from 'src/ui/elements/Button/ButtonStyle.ts'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import center = EmotionCommon.center
 import abs = EmotionCommon.abs
-import centerAll = EmotionCommon.centerAll
 import rays from '@img/rays.png'
 import leftChar from '@img/char-left.png'
 import rightChar from '@img/char-right.png'
@@ -26,7 +25,7 @@ React.memo(
       
       <LeftChar src={leftChar}/>
       <RightChar src={rightChar}/>
-      <Link to={'/tournament'}>
+      <Link to={'/tournament/1'}>
         <Button css={ButtonStyle.button}>Турнир</Button>
       </Link>
     </Pages.ContentClampAspectRatio>

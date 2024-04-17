@@ -10,12 +10,12 @@ export namespace ButtonStyle {
   
   
   export const button = css`
-    width: 230px;
-    height: 70px;
+    width: 200px;
+    height: 55px;
     background: url(${buttonBgc});
     background-size: 100% 100%;
     color: white;
-    ${Txt.large4};
+    ${Txt.large2};
     text-transform: uppercase;
   `
   
