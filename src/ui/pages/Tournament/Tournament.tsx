@@ -10,7 +10,6 @@ import { ButtonStyle } from 'src/ui/elements/Button/ButtonStyle.ts'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import Txt = EmotionCommon.Txt
 import abs = EmotionCommon.abs
-import col = EmotionCommon.col
 
 
 
@@ -34,16 +33,23 @@ React.memo(
         <Bgc />
         <Rays src={rays}/>
         
-        <Tour>
-          <div>{tournamentName}</div>
-          <div>Сложность: {tournamentLevel}</div>
-          <div style={{ flex: 1 }}/>
-          <div>Правила турнира</div>
-        </Tour>
-        {/* <Img src={trophy}/> */}
-        <Img/>
-        <Rules>{parse(tournamentRules)}</Rules>
+        <DescriptionContainer>
+          <Tour>
+            <div/>
+            <div>{tournamentName}</div>
+            <div>Сложность: {tournamentLevel}</div>
+            <div/>
+            <TourRulesTitle>Правила турнира</TourRulesTitle>
+          </Tour>
+          {/* <Trophy src={trophy}/> */}
+          <TrophyFrame>
+            <Trophy/>
+          </TrophyFrame>
+          <Rules>{parse(tournamentRules)}</Rules>
+        </DescriptionContainer>
+        
         <Btn>Участвовать</Btn>
+        
       </Layout>
     </Pages.ContentClampAspectRatio>
   </Pages.Page>
@@ -60,49 +66,77 @@ const Layout = styled.div`
   
   display: grid;
   grid:
-    'tour  img'   2fr
-    'rules rules' 1.3fr
-    'btn   btn'   0.7fr
-  / 3fr    2fr;
+    'desc'   3.3fr
+    'btn'    0.7fr
+  ;
   gap: 10px;
-  padding: 20px 20px 10px 20px;
+  padding: 20px 60px 10px 60px;
 `
-const Tour = styled.div`
-  grid-area: tour;
-  ${col};
-  gap: 20px;
-  color: white;
-  ${Txt.large1};
-  z-index: 0;
-`
-/* const Img = styled.img`
-  grid-area: img;
-  place-self: start end;
+
+
+const DescriptionContainer = styled.div`
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  max-height: 100%;
   z-index: 0;
-` */
-const Img = styled.div`
-  grid-area: img;
-  place-self: stretch stretch;
-  object-fit: contain;
+  background: #00000055;
+  border-radius: 10px;
+  
+  display: grid;
+  grid:
+    'tour  trophy'   85%
+    'rules rules'    auto
+  / 2fr    2fr;
+  gap: 10px;
+  overflow-y: auto;
+  
+  color: white;
+  ${Txt.large3};
+`
+
+
+const Tour = styled.div`
+  grid-area: tour;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto auto 1fr auto;
+  place-content: center;
+  gap: 20px;
+  z-index: 0;
+`
+const TourRulesTitle = styled.div`
+  justify-self: end;
+  /*grid-area: tour;
+  z-index: 0;*/
+`
+const TrophyFrame = styled.div`
+  grid-area: trophy;
+  width: 100%;
+  height: 100%;
+  background: white;
+  display: grid;
+  place-items: stretch center;
+  z-index: 0;
+`
+const Trophy = styled.div`
+  width: 100%;
+  height: 100%;
   background: url(${trophy});
-  background-position: top right;
-  background-size: auto 100%;
+  background-position: center;
+  background-size: contain;
   background-repeat: no-repeat;
   z-index: 0;
 `
+
 const Rules = styled.div`
   grid-area: rules;
   place-self: stretch stretch;
   min-height: 40px;
+  height: fit-content;
   z-index: 0;
-  overflow-y: auto;
-  border: 2px solid white;
-  border-radius: 10px;
-  padding: 5px;
+  //border: 2px solid white;
+  //border-radius: 10px;
+  padding: 7px;
   ${Txt.normal1};
   color: white;
 `
@@ -123,6 +157,6 @@ const Rays = styled.img`
   top: 87.5%;
   width: 100%;
   height: auto;
-  translate: -50% -50%;
+  translate: -51.2% -49.5%;
   scale: 2;
 `
