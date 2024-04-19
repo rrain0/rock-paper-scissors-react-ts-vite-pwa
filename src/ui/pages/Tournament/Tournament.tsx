@@ -34,18 +34,20 @@ React.memo(
         <Rays src={rays}/>
         
         <DescriptionContainer>
-          <Tour>
-            <div/>
+          <TourDescription>
             <div>{tournamentName}</div>
             <div>Сложность: {tournamentLevel}</div>
             <div/>
             <TourRulesTitle>Правила турнира</TourRulesTitle>
-          </Tour>
+          </TourDescription>
           {/* <Trophy src={trophy}/> */}
           <TrophyFrame>
             <Trophy/>
           </TrophyFrame>
-          <Rules>{parse(tournamentRules)}</Rules>
+          <Rules>
+            {parse(tournamentRules)}
+            <div style={{ height: 10 }} />
+          </Rules>
         </DescriptionContainer>
         
         <Btn>Участвовать</Btn>
@@ -80,6 +82,7 @@ const DescriptionContainer = styled.div`
   z-index: 0;
   background: #00000055;
   border-radius: 10px;
+  padding: 10px;
   
   display: grid;
   grid:
@@ -94,13 +97,13 @@ const DescriptionContainer = styled.div`
 `
 
 
-const Tour = styled.div`
+const TourDescription = styled.div`
   grid-area: tour;
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-rows: 1fr auto auto 1fr auto;
-  place-content: center;
+  grid-template-rows: auto auto 1fr auto;
+  place-content: start start;
   gap: 20px;
   z-index: 0;
 `
@@ -136,7 +139,6 @@ const Rules = styled.div`
   z-index: 0;
   //border: 2px solid white;
   //border-radius: 10px;
-  padding: 7px;
   ${Txt.normal1};
   color: white;
 `

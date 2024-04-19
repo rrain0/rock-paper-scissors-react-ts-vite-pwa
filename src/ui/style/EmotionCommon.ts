@@ -267,6 +267,7 @@ export namespace EmotionCommon {
     export const large3 = css`
       font-weight: 400;
       font-size: 24px;
+      //font-size: clamp(10px, 24px, 8dvmin);
       line-height: 150%;
       letter-spacing: 0.05em;
     `
