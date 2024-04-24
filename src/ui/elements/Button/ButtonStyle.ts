@@ -20,4 +20,14 @@ export namespace ButtonStyle {
   `
   
   
+  export const action = css`
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1;
+    background-size: cover;
+    background-position: center;
+    border-radius: 999999px;
+  `
+  
+  
 }

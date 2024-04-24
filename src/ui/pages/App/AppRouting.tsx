@@ -4,9 +4,10 @@ import {
   RouteObject,
   RouterProvider,
 } from 'react-router-dom'
+import { gameScreenRouting } from 'src/ui/pages/GameScreen/routing.tsx'
 import { mainMenuRouting } from 'src/ui/pages/MainMenu/routing.tsx'
 import React from 'react'
-import { tournamentRouting } from 'src/ui/pages/Tournament/routing.tsx'
+import { tournamentRouting } from 'src/ui/pages/TournamentInfo/routing.tsx'
 
 
 
@@ -22,6 +23,10 @@ const rootRoutes: RouteObject[] = [
   {
     path: 'tournament'+'/*',
     children: tournamentRouting,
+  },
+  {
+    path: 'game-screen'+'/*',
+    children: gameScreenRouting,
   },
   {
     path: '*',

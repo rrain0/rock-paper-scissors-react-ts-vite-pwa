@@ -241,7 +241,7 @@ export namespace EmotionCommon {
    `
   
   
-  export const rotateKfs = keyframes`
+  export const rotateAnim = keyframes`
     from { rotate: 0turn; }
     to { rotate: 1turn; }
   `
@@ -249,6 +249,13 @@ export namespace EmotionCommon {
   
   
   export namespace Txt {
+    
+    export const large6 = css`
+      font-weight: 500;
+      font-size: 40px;
+      line-height: 150%;
+      letter-spacing: 0.05em;
+    `
     
     export const large5 = css`
       font-weight: 500;

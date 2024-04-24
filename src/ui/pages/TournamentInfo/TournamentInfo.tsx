@@ -1,7 +1,7 @@
 import styled from '@emotion/styled'
 import React from 'react'
 import parse from 'html-react-parser'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Pages } from 'src/ui/components/Pages/Pages'
 import rays from '@img/rays.png'
 import trophy from '@img/trophy-award-laurel-wreath-composition-with-realistic-image-of-golden-cup-decorated-with-garland-with-reflection_1284-32301.jpg'
@@ -13,7 +13,7 @@ import abs = EmotionCommon.abs
 
 
 
-const Tournament =
+const TournamentInfo =
 React.memo(
 ()=>{
   const tournamentId = useParams().tournamentId!
@@ -40,7 +40,6 @@ React.memo(
             <div/>
             <TourRulesTitle>Правила турнира</TourRulesTitle>
           </TourDescription>
-          {/* <Trophy src={trophy}/> */}
           <TrophyFrame>
             <Trophy/>
           </TrophyFrame>
@@ -50,13 +49,15 @@ React.memo(
           </Rules>
         </DescriptionContainer>
         
-        <Btn>Участвовать</Btn>
+        <Link to={'/game-screen'}>
+          <Btn>Участвовать</Btn>
+        </Link>
         
       </Layout>
     </Pages.ContentClampAspectRatio>
   </Pages.Page>
 })
-export default Tournament
+export default TournamentInfo
 
 
 
@@ -74,6 +75,22 @@ const Layout = styled.div`
   gap: 10px;
   padding: 20px 60px 10px 60px;
 `
+
+
+const Bgc = styled.div`
+  ${abs};
+  background: #004bbc;
+`
+const Rays = styled.img`
+  position: absolute;
+  left: 50%;
+  top: 88%;
+  width: 100%;
+  height: auto;
+  translate: -50% -50%;
+  scale: 2;
+`
+
 
 
 const DescriptionContainer = styled.div`
@@ -146,19 +163,4 @@ const Btn = styled(Button)`
   ${ButtonStyle.button};
   grid-area: btn;
   place-self: center;
-`
-
-
-const Bgc = styled.div`
-  ${abs};
-  background: #004bbc;
-`
-const Rays = styled.img`
-  position: absolute;
-  left: 50%;
-  top: 87.5%;
-  width: 100%;
-  height: auto;
-  translate: -51.2% -49.5%;
-  scale: 2;
 `

@@ -1,7 +1,7 @@
 import React from 'react'
 import { clearUnknownPathEnding } from 'src/util/react-router/ReactRouterUtils.tsx'
 import { Navigate, RouteObject, useParams } from 'react-router-dom'
-import Tournament from 'src/ui/pages/Tournament/Tournament.tsx'
+import TournamentInfo from 'src/ui/pages/TournamentInfo/TournamentInfo.tsx'
 
 
 
@@ -9,13 +9,14 @@ import Tournament from 'src/ui/pages/Tournament/Tournament.tsx'
 
 
 const TournamentTournamentId =
-React.memo(()=>{
+React.memo(
+()=>{
   const tournamentId = useParams().tournamentId!
   
   const allowedIds = ['1','2','3']
   
   if (allowedIds.includes(tournamentId))
-    return <Tournament/>
+    return <TournamentInfo/>
   else
     return <Navigate to={'/main-menu'} replace />
 })

@@ -8,7 +8,7 @@ const App =
 React.memo(
 ()=>{
   
-  //useAutoFullscreen()
+  useAutoFullscreen()
   
   return <>
     <AppFrame/>
