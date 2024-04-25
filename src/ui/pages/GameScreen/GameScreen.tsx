@@ -5,7 +5,7 @@ import { AsyncUtils } from '@util/common/AsyncUtils.ts'
 import { MathUtils } from '@util/common/MathUtils.ts'
 import { Link } from 'react-router-dom'
 import { Pages } from 'src/ui/components/Pages/Pages'
-import React, { useEffect, useState } from 'react'
+import React, { AnimationEvent, useEffect, useState } from 'react'
 import swing from '@audio/swing.mp3'
 import enemyAva from '@img/enemy-ava.jpg'
 import playerAva from '@img/player-ava.jpg'
@@ -98,6 +98,9 @@ const nameToImg = {
 }
 
 const timeOfSingleShake = 700 // ms
+const shakeDelay = 500 //ms
+const fullShakeAnim = shakeDelay + timeOfSingleShake*3
+
 type GamesState = 'search'|'start'|'game'|'end'|'next'
 
 const GameScreen =
@@ -153,7 +156,7 @@ React.memo(
   useEffect(
     ()=>{
       if (gameState==='game'){
-        const timerId = setTimeout(endGame, timeOfSingleShake*3)
+        const timerId = setTimeout(endGame, fullShakeAnim)
         return ()=>clearTimeout(timerId)
       }
     },
@@ -232,24 +235,26 @@ React.memo(
   const leftHandProps = function(){
     const img = gameState === 'end' ? nameToImg[enemyChoice + ''] : rock
     return {
-      img,
+      src: img,
       isShrink: img===rock,
-      isRight: false,
-      isShaking: gameState === 'game',
+      isPulledOut: ['game','end'].includes(gameState),
     }
   }()
   const rightHandProps = function(){
     const img = gameState === 'end' ? nameToImg[playerChoice + ''] : rock
     return {
-      img,
+      src: img,
       isShrink: img===rock,
-      isRight: true,
-      isShaking: gameState === 'game',
+      isPulledOut: ['game','end'].includes(gameState),
       /* style: {
        translate: '-20% -15%',
        } */
     }
   }()
+  
+  const onAnimation = (ev: React.AnimationEvent)=>{
+    if ([shakeLeftAnim.name, shakeRightAnim.name].includes(ev.animationName)) play()
+  }
   
   
   return <Pages.Page>
@@ -261,13 +266,25 @@ React.memo(
         <Rays src={rays} isRotating={gameState==='end'}/>
         
         
-        <Hands>
-          {gameState!=='search' && <Hand {...leftHandProps}/>}
-          <Hand {...rightHandProps}
-            onAnimationStart={play}
-            onAnimationIteration={play}
+        {gameState!=='search' && <HandContainer
+          isShaking={gameState==='game'}
+        >
+          <Hand
+            {...leftHandProps}
           />
-        </Hands>
+        </HandContainer>}
+        
+        <HandContainer
+          isRight
+          isShaking={gameState==='game'}
+          onAnimationStart={onAnimation}
+          onAnimationIteration={onAnimation}
+        >
+          <Hand
+            {...rightHandProps}
+            isRight
+          />
+        </HandContainer>
         
         <Layout>
           
@@ -434,45 +451,65 @@ const Tour = styled.div`
 `
 
 
-const Hands = styled.section`
-  ${abs};
-`
-/* const shakeAnim = keyframes`
-  0% { translate: 0 0 }
-  25% { translate: 0 -100px }
-  50% { translate: 0 0 }
-  75% { translate: 0 100px }
-  100% { translate: 0 0 }
-` */
-const shakeAnim = keyframes`
+const shakeLeftAnim = keyframes`
   0% { rotate: 0turn }
-  25% { rotate: -0.2turn }
+  25% { rotate: -0.15turn }
   50% { rotate: 0turn }
-  75% { rotate: 0.2turn }
+  75% { rotate: 0.15turn }
   100% { rotate: 0turn }
 `
-const Hand = styled.div<{
+const shakeRightAnim = keyframes`
+  0% { rotate: 0turn }
+  25% { rotate: 0.15turn }
+  50% { rotate: 0turn }
+  75% { rotate: -0.15turn }
+  100% { rotate: 0turn }
+`
+const HandContainer = styled.div<{
   isRight?: boolean,
   isShaking: boolean,
-  isShrink: boolean,
-  img: string,
 }>`
   position: absolute;
-  height: 100%;
-  width: 50%;
-  background-image: url(${p=>p.img});
-  background-position: -4% 80%;
-  background-size: 50% auto;
-  ${p=>p.isShrink && css`background-size: 34% auto`};
-  background-repeat: no-repeat;
-  ${p=>!p.isRight && css`
-    left: 0;
+  bottom: 0;
+  top: 40%;
+  width: 200%;
+  ${p=>!p.isRight && css`left: -100%;`};
+  ${p=>p.isRight && css`right: -100%;`};
+  ${p=>p.isShaking && !p.isRight && css`
+    animation: ${shakeLeftAnim} ${timeOfSingleShake}ms linear infinite;
+    animation-delay: ${shakeDelay}ms;
   `};
-  ${p=>p.isRight && css`
-    scale: -1 1;
-    right: 0;
+  ${p=>p.isShaking && p.isRight && css`
+    animation: ${shakeRightAnim} ${timeOfSingleShake}ms linear infinite;
+    animation-delay: ${shakeDelay}ms;
   `};
-  ${p=>p.isShaking && css`animation: ${shakeAnim} ${timeOfSingleShake}ms linear infinite`};
+`
+const pullOutLeftAnim = keyframes`
+  from { translate: 0 0 }
+  to { translate: 70px -10px }
+`
+const pullOutRightAnim = keyframes`
+  from { translate: 0 0 }
+  to { translate: -70px -10px }
+`
+const Hand = styled.img<{
+  isRight?: boolean,
+  isPulledOut: boolean,
+  isShrink: boolean,
+}>`
+  position: absolute;
+  bottom: 20%;
+  ${p=>!p.isRight && css`left: 50%;`};
+  ${p=>p.isRight && css`right: 50%;`};
+  height: calc(90% * ${p=>(p.isShrink ? 0.85 : 1)});
+  width: auto;
+  ${p=>p.isRight && css`scale: -1 1;`};
+  ${p=>p.isPulledOut && !p.isRight
+    && css`animation: ${pullOutLeftAnim} ${shakeDelay}ms linear 1 forwards`
+  };
+  ${p=>p.isPulledOut && p.isRight
+    && css`animation: ${pullOutRightAnim} ${shakeDelay}ms linear 1 forwards`
+  };
 `
 
 
