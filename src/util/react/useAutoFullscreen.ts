@@ -5,7 +5,7 @@ export const useAutoFullscreen = ()=>{
   useLayoutEffect(()=>{
     const html = document.documentElement
     const onClick = async()=>{
-      console.log('click')
+      //console.log('click')
       if(!document.fullscreenElement){
         await html.requestFullscreen()
       }

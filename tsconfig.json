@@ -23,6 +23,7 @@
       
       "@res/*": ["src/res/*"],
       "@img/*": ["src/res/img/*"],
+      "@audio/*": ["src/res/audio/*"],
       
       "@util/*": ["src/util/*"]
     },

@@ -1,11 +1,14 @@
 import { css, keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
 import rays from '@img/rays.png'
+import { AsyncUtils } from '@util/common/AsyncUtils.ts'
 import { MathUtils } from '@util/common/MathUtils.ts'
 import { Pages } from 'src/ui/components/Pages/Pages'
 import React, { useEffect, useState } from 'react'
+import swing from '@audio/swing.mp3'
 import enemyAva from '@img/enemy-ava.jpg'
 import playerAva from '@img/player-ava.jpg'
+import unknownAva from '@img/ava-unknown.png'
 import btnRock from '@img/btn-rock.png'
 import btnRockActive from '@img/btn-rock-active.png'
 import btnScissors from '@img/btn-scissors.png'
@@ -18,16 +21,40 @@ import paper from '@img/paper.png'
 import Button from 'src/ui/elements/Button/Button.tsx'
 import { ButtonStyle } from 'src/ui/elements/Button/ButtonStyle.ts'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
+import useSound from 'use-sound'
 import randomInt = MathUtils.randomInt
 import abs = EmotionCommon.abs
 import Txt = EmotionCommon.Txt
 import row = EmotionCommon.row
 import center = EmotionCommon.center
 import rotateAnim = EmotionCommon.rotateAnim
+import awaitValue = AsyncUtils.awaitValue
 
 
 
-const timeOfSingleShake = 700 // ms
+
+type Player = {
+  ava: string
+  name: string
+}
+async function findEnemy(): Promise<Player> {
+  const enemies: Player[] = [
+    {
+      ava: enemyAva,
+      name: 'Соперник 1',
+    },
+    {
+      ava: enemyAva,
+      name: 'Соперник 2',
+    },
+    {
+      ava: enemyAva,
+      name: 'Джэйсон Стетхэм',
+    },
+  ]
+  return awaitValue(1500, enemies[randomInt(2)])
+}
+
 
 
 
@@ -38,9 +65,37 @@ function rockPaperScissors(): RockPaperScissors {
   if (r === 1) return 'paper'
   return 'scissors'
 }
+function battleResult(you: RockPaperScissors, enemy: RockPaperScissors): 'win'|'draw'|'defeat' {
+  const variants = {
+    rock: {
+      rock: 'draw',
+      scissors: 'win',
+      paper: 'defeat',
+    } as const,
+    scissors: {
+      rock: 'defeat',
+      scissors: 'draw',
+      paper: 'win',
+    } as const,
+    paper: {
+      rock: 'win',
+      scissors: 'defeat',
+      paper: 'draw',
+    } as const,
+  } as const
+  return variants[you][enemy]
+}
 
 
+const nameToImg = {
+  null: rock,
+  rock: rock,
+  scissors: scissors,
+  paper: paper,
+}
 
+const timeOfSingleShake = 700 // ms
+type GamesState = 'search'|'start'|'game'|'end'|'next'
 
 const GameScreen =
 React.memo(
@@ -49,45 +104,66 @@ React.memo(
   const tourData = {
     enemyAva: enemyAva,
     enemyName: 'Имя соперника',
-    enemyPts: 0,
     tourNumber: 1,
     tourLevel: 20,
     playerAva: playerAva,
     playerName: 'Имя игрока',
-    playerPts: 0,
   }
   
-  const [selected, setSelected] = useState<RockPaperScissors | undefined>(undefined)
-  const [enemyHand, setEnemyHand] = useState<RockPaperScissors | undefined>(undefined)
-  const [playerHand, setPlayerHand] = useState<RockPaperScissors | undefined>(undefined)
+  const [play] = useSound(swing)
   
-  const [gameState, setGameState] = useState<'start'|'game'|'end'>('start')
+  const [gameState, setGameState] = useState<GamesState>('search')
+  
+  const [enemy, setEnemy] = useState<Player|null>(null)
+  
+  const [playerSelected, setPlayerSelected] = useState<RockPaperScissors | null>(null)
+  const [enemySelected, setEnemySelected] = useState<RockPaperScissors | null>(null)
+  
+  const selectAction = (action: RockPaperScissors)=>{
+    if (gameState==='start') setPlayerSelected(action)
+  }
+  
+  
+  const [enemyPts, setEnemyPts] = useState(0)
+  const [playerPts, setPlayerPts] = useState(0)
   
   useEffect(()=>{
-    if (selected) setGameState('game')
-  }, [selected])
-  useEffect(() => {
-    if (gameState==='game'){
-      const timerId = setTimeout(
-        ()=>{
-          setEnemyHand(rockPaperScissors())
-          setPlayerHand(selected)
-          setGameState('end')
-        },
-        timeOfSingleShake*3
-      )
-      return ()=>clearTimeout(timerId)
+    if (gameState==='search'){
+      findEnemy().then(it=>{
+        setEnemy(it)
+        setGameState('start')
+      })
     }
   }, [gameState])
+  useEffect(()=>{
+    if (playerSelected) {
+      setGameState('game')
+      setEnemySelected(rockPaperScissors())
+    }
+  }, [playerSelected])
+  useEffect(
+    ()=>{
+      if (gameState==='game'){
+        const timerId = setTimeout(
+          ()=>{
+            setGameState('end')
+            const result = battleResult(playerSelected!, enemySelected!)
+            if (result==='win') setPlayerPts(playerPts+1)
+            if (result==='defeat') setEnemyPts(enemyPts+1)
+          },
+          timeOfSingleShake*3
+        )
+        return ()=>clearTimeout(timerId)
+      }
+    },
+    [gameState, playerSelected, enemySelected, playerPts, enemyPts]
+  )
   
   useEffect(()=>{
     if (gameState==='end'){
       const timerId = setTimeout(
         ()=>{
-          setSelected(undefined)
-          setEnemyHand(undefined)
-          setPlayerHand(undefined)
-          setGameState('start')
+          setGameState('next')
         },
         3000
       )
@@ -96,87 +172,133 @@ React.memo(
   }, [gameState])
   
   
+  const next = ()=>{
+    setPlayerSelected(null)
+    setEnemySelected(null)
+    setGameState('search')
+  }
+  
+  
   const rockBgc = function(){
-    if (selected===undefined) return `url(${btnRock})`
-    if (selected==='rock') return `url(${btnRockActive})`
-    return `linear-gradient(#00000088, #00000088), url(${btnRock})`
+    let bgc = `url(${btnRock})`
+    if (playerSelected==='rock') bgc = `url(${btnRockActive})`
+    if (gameState!=='start') bgc = 'linear-gradient(#00000088, #00000088), '+bgc
+    return bgc
   }()
   const scissorsBgc = function(){
-    if (selected===undefined) return `url(${btnScissors})`
-    if (selected==='scissors') return `url(${btnScissorsActive})`
-    return `linear-gradient(#00000088, #00000088), url(${btnScissors})`
+    let bgc = `url(${btnScissors})`
+    if (playerSelected==='scissors') bgc = `url(${btnScissorsActive})`
+    if (gameState!=='start') bgc = 'linear-gradient(#00000088, #00000088), '+bgc
+    return bgc
   }()
   const paperBgc = function(){
-    if (selected===undefined) return `url(${btnPaper})`
-    if (selected==='paper') return `url(${btnPaperActive})`
-    return `linear-gradient(#00000088, #00000088), url(${btnPaper})`
+    let bgc = `url(${btnPaper})`
+    if (playerSelected==='paper') bgc = `url(${btnPaperActive})`
+    if (gameState!=='start') bgc = 'linear-gradient(#00000088, #00000088), '+bgc
+    return bgc
   }()
   
-  const enemyHandImg = function(){
-    if (enemyHand===undefined) return `url(${rock})`
-    if (enemyHand==='rock') return `url(${rock})`
-    if (enemyHand==='scissors') return `url(${scissors})`
-    if (enemyHand==='paper') return `url(${paper})`
+  
+  const leftHandProps = function(){
+    const img = gameState === 'end' ? nameToImg[enemySelected + ''] : rock
+    return {
+      img,
+      isShrink: img===rock,
+      isRight: false,
+      isShaking: gameState === 'game',
+    }
   }()
-  const playerHandImg = function(){
-    if (playerHand===undefined) return `url(${rock})`
-    if (playerHand==='rock') return `url(${rock})`
-    if (playerHand==='scissors') return `url(${scissors})`
-    if (playerHand==='paper') return `url(${paper})`
+  const rightHandProps = function(){
+    const img = gameState === 'end' ? nameToImg[playerSelected + ''] : rock
+    return {
+      img,
+      isShrink: img===rock,
+      isRight: true,
+      isShaking: gameState === 'game',
+      /* style: {
+       translate: '-20% -15%',
+       } */
+    }
   }()
   
   
   return <Pages.Page>
     <Pages.ContentClampAspectRatio>
+      
+      
       <Content>
         <Bgc />
         <Rays src={rays} isRotating={gameState==='end'}/>
         
         
         <Hands>
-          <Hand
-            style={{ backgroundImage: enemyHandImg }}
-            isShaking={gameState==='game'}
-          />
-          <Hand
-            style={{ backgroundImage: playerHandImg }}
-            isRight
-            isShaking={gameState==='game'}
+          {gameState!=='search' && <Hand {...leftHandProps}/>}
+          <Hand {...rightHandProps}
+            onAnimationStart={play}
+            onAnimationIteration={play}
           />
         </Hands>
         
         <Layout>
           
           <StatusBar>
-            <Ava style={{ backgroundImage: `url(${enemyAva})` }} />
-            <NameContainer><Name>{tourData.enemyName}</Name></NameContainer>
-            <PtsContainer><Pts>{tourData.enemyPts}</Pts></PtsContainer>
+            <Ava img={gameState==='search' ? unknownAva : enemyAva} />
+            <NameContainer>
+              <Name>
+                {gameState==='search' ? 'Поиск достойного противника...' : enemy!.name}
+              </Name>
+            </NameContainer>
+            <PtsContainer><Pts>{enemyPts}</Pts></PtsContainer>
             <Tour>
               <div>Тур</div>
               <div>3/20</div>
             </Tour>
-            <PtsContainer><Pts>{tourData.playerPts}</Pts></PtsContainer>
+            <PtsContainer><Pts>{playerPts}</Pts></PtsContainer>
             <NameContainer><Name>{tourData.playerName}</Name></NameContainer>
-            <Ava style={{ backgroundImage: `url(${playerAva})` }}/>
+            <Ava img={tourData.playerAva} />
           </StatusBar>
           <div/>
-          <ActionBar>
-            <Button css={ButtonStyle.action}
-              style={{ backgroundImage: rockBgc }}
-              onClick={()=>{ if (!selected) setSelected('rock') }}
+          {gameState!=='game' && <ActionBar>
+            <ActionButton
+              img={btnRock}
+              activeImg={btnRockActive}
+              isActive={playerSelected==='rock'}
+              disabled={gameState!=='start'}
+              isFaded={['search'].includes(gameState)}
+              onClick={()=>selectAction('rock')}
             />
-            <Button css={ButtonStyle.action}
-              style={{ backgroundImage: scissorsBgc }}
-              onClick={()=>{ if (!selected) setSelected('scissors') }}
+            <ActionButton
+              img={btnScissors}
+              activeImg={btnScissorsActive}
+              isActive={playerSelected==='scissors'}
+              disabled={gameState!=='start'}
+              isFaded={['search'].includes(gameState)}
+              onClick={()=>selectAction('scissors')}
             />
-            <Button css={ButtonStyle.action}
-              style={{ backgroundImage: paperBgc }}
-              onClick={()=>{ if (!selected) setSelected('paper') }}
+            <ActionButton
+              img={btnPaper}
+              activeImg={btnPaperActive}
+              isActive={playerSelected==='paper'}
+              disabled={gameState!=='start'}
+              isFaded={['search'].includes(gameState)}
+              onClick={()=>selectAction('paper')}
             />
-          </ActionBar>
+          </ActionBar>}
           
         </Layout>
       </Content>
+      
+      
+      {gameState==='next' && <ResultDialogFrame>
+        <ResultDialog>
+          <div>Результат</div>
+          <Button css={ButtonStyle.button} onClick={next}>
+            Продолжить
+          </Button>
+        </ResultDialog>
+      </ResultDialogFrame>}
+      
+      
     </Pages.ContentClampAspectRatio>
   </Pages.Page>
 })
@@ -200,7 +322,7 @@ const Bgc = styled.div`
 const Rays = styled.img<{ isRotating: boolean }>`
   position: absolute;
   left: 50%;
-  top: 60px;
+  top: 50%;
   width: 100%;
   height: auto;
   translate: -50% -50%;
@@ -229,10 +351,11 @@ const StatusBar = styled.section`
   height: 80px;
   padding: 6px;
 `
-const Ava = styled.div`
+const Ava = styled.div<{ img: string }>`
   height: 100%;
   width: auto;
   aspect-ratio: 1;
+  background-image: url(${p=>p.img});
   background-size: cover;
   background-position: center;
   border-radius: 999999px;
@@ -246,6 +369,7 @@ const NameContainer = styled.div`
 `
 const Name = styled.div`
   ${Txt.large2};
+  line-height: 129%;
   overflow-wrap: anywhere;
   text-align: center;
 `
@@ -277,23 +401,42 @@ const Tour = styled.div`
 
 const Hands = styled.section`
   ${abs};
-  display: grid;
-  grid-template-columns: 1fr 1fr;
 `
-const shakeAnim = keyframes`
+/* const shakeAnim = keyframes`
   0% { translate: 0 0 }
   25% { translate: 0 -100px }
   50% { translate: 0 0 }
   75% { translate: 0 100px }
   100% { translate: 0 0 }
+` */
+const shakeAnim = keyframes`
+  0% { rotate: 0turn }
+  25% { rotate: -0.2turn }
+  50% { rotate: 0turn }
+  75% { rotate: 0.2turn }
+  100% { rotate: 0turn }
 `
-const Hand = styled.div<{ isRight?: boolean, isShaking: boolean }>`
+const Hand = styled.div<{
+  isRight?: boolean,
+  isShaking: boolean,
+  isShrink: boolean,
+  img: string,
+}>`
+  position: absolute;
   height: 100%;
-  width: 100%;
-  background-position: left 80%;
+  width: 50%;
+  background-image: url(${p=>p.img});
+  background-position: -4% 80%;
   background-size: 50% auto;
+  ${p=>p.isShrink && css`background-size: 34% auto`};
   background-repeat: no-repeat;
-  ${p=>p.isRight && css`scale: -1 1`};
+  ${p=>!p.isRight && css`
+    left: 0;
+  `};
+  ${p=>p.isRight && css`
+    scale: -1 1;
+    right: 0;
+  `};
   ${p=>p.isShaking && css`animation: ${shakeAnim} ${timeOfSingleShake}ms linear infinite`};
 `
 
@@ -303,4 +446,40 @@ const ActionBar = styled.section`
   ${row};
   justify-content: center;
   gap: 50px;
+`
+const ActionButton = styled(Button)<{
+  img: string,
+  activeImg: string,
+  isActive: boolean,
+  isFaded: boolean,
+}>`
+  ${ButtonStyle.gameAciton};
+  background-image: url(${p=>p.isActive ? p.activeImg : p.img});
+  
+  ::after {
+    content: '';
+    ${abs};
+    border-radius: inherit;
+    ${p=>p.isFaded && css`background: #00000088`};
+  }
+`
+
+
+
+const ResultDialogFrame = styled.section`
+  ${abs};
+  padding: 60px 100px;
+  ${center};
+`
+const ResultDialog = styled.div`
+  width: 100%;
+  height: 100%;
+  border-radius: 30px;
+  background: #00000088;
+  padding: 20px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  place-items: center;
+  color: white;
+  ${Txt.large4};
 `

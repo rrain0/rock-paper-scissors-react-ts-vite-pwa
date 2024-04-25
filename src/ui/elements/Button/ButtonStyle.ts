@@ -20,7 +20,7 @@ export namespace ButtonStyle {
   `
   
   
-  export const action = css`
+  export const gameAciton = css`
     height: 100%;
     width: auto;
     aspect-ratio: 1;
