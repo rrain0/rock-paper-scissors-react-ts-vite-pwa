@@ -3,6 +3,7 @@ import styled from '@emotion/styled'
 import rays from '@img/rays.png'
 import { AsyncUtils } from '@util/common/AsyncUtils.ts'
 import { MathUtils } from '@util/common/MathUtils.ts'
+import { Link } from 'react-router-dom'
 import { Pages } from 'src/ui/components/Pages/Pages'
 import React, { useEffect, useState } from 'react'
 import swing from '@audio/swing.mp3'
@@ -65,7 +66,8 @@ function rockPaperScissors(): RockPaperScissors {
   if (r === 1) return 'paper'
   return 'scissors'
 }
-function battleResult(you: RockPaperScissors, enemy: RockPaperScissors): 'win'|'draw'|'defeat' {
+type BattleResult = 'win'|'draw'|'defeat'
+function getBattleResult(you: RockPaperScissors, enemy: RockPaperScissors): BattleResult {
   const variants = {
     rock: {
       rock: 'draw',
@@ -86,6 +88,7 @@ function battleResult(you: RockPaperScissors, enemy: RockPaperScissors): 'win'|'
   return variants[you][enemy]
 }
 
+type GameResult = 'battleWin' | 'battleDraw' | 'battleLost' | 'tourWin' | 'gameLost' | 'gameWin'
 
 const nameToImg = {
   null: rock,
@@ -102,10 +105,7 @@ React.memo(
 ()=>{
   
   const tourData = {
-    enemyAva: enemyAva,
-    enemyName: 'Имя соперника',
-    tourNumber: 1,
-    tourLevel: 20,
+    tourLevel: 3,
     playerAva: playerAva,
     playerName: 'Имя игрока',
   }
@@ -113,22 +113,24 @@ React.memo(
   const [play] = useSound(swing)
   
   const [gameState, setGameState] = useState<GamesState>('search')
+  const [tourNumber, setTourNumber] = useState(1)
   
   const [enemy, setEnemy] = useState<Player|null>(null)
   
-  const [playerSelected, setPlayerSelected] = useState<RockPaperScissors | null>(null)
-  const [enemySelected, setEnemySelected] = useState<RockPaperScissors | null>(null)
-  
+  const [enemyChoice, setEnemyChoice] = useState<RockPaperScissors | null>(null)
+  const [playerChoice, setPlayerChoice] = useState<RockPaperScissors | null>(null)
   const selectAction = (action: RockPaperScissors)=>{
-    if (gameState==='start') setPlayerSelected(action)
+    if (gameState==='start') setPlayerChoice(action)
   }
-  
   
   const [enemyPts, setEnemyPts] = useState(0)
   const [playerPts, setPlayerPts] = useState(0)
   
+  const [battleResult, setBattleResult] = useState<BattleResult | null>(null)
+  const [gameResult, setGameResult] = useState<GameResult | null>(null)
+  
   useEffect(()=>{
-    if (gameState==='search'){
+    if (gameState==='search') {
       findEnemy().then(it=>{
         setEnemy(it)
         setGameState('start')
@@ -136,71 +138,99 @@ React.memo(
     }
   }, [gameState])
   useEffect(()=>{
-    if (playerSelected) {
+    if (playerChoice) {
       setGameState('game')
-      setEnemySelected(rockPaperScissors())
+      setEnemyChoice(rockPaperScissors())
     }
-  }, [playerSelected])
+  }, [playerChoice])
+  const endGame = ()=>{
+    const result = getBattleResult(playerChoice!, enemyChoice!)
+    if (result==='win') setPlayerPts(playerPts+1)
+    if (result==='defeat') setEnemyPts(enemyPts+1)
+    setBattleResult(result)
+    setGameState('end')
+  }
   useEffect(
     ()=>{
       if (gameState==='game'){
-        const timerId = setTimeout(
-          ()=>{
-            setGameState('end')
-            const result = battleResult(playerSelected!, enemySelected!)
-            if (result==='win') setPlayerPts(playerPts+1)
-            if (result==='defeat') setEnemyPts(enemyPts+1)
-          },
-          timeOfSingleShake*3
-        )
+        const timerId = setTimeout(endGame, timeOfSingleShake*3)
         return ()=>clearTimeout(timerId)
       }
     },
-    [gameState, playerSelected, enemySelected, playerPts, enemyPts]
+    [gameState]
   )
   
   useEffect(()=>{
     if (gameState==='end'){
-      const timerId = setTimeout(
-        ()=>{
-          setGameState('next')
-        },
-        3000
-      )
+      if (enemyPts<2 && playerPts<2) {
+        if (battleResult==='win') setGameResult('battleWin')
+        if (battleResult==='draw') setGameResult('battleDraw')
+        if (battleResult==='defeat') setGameResult('battleLost')
+      }
+      else if (enemyPts>=2) setGameResult('gameLost')
+      else if (playerPts>=2) {
+        if (tourNumber < tourData.tourLevel) setGameResult('tourWin')
+        if (tourNumber === tourData.tourLevel) setGameResult('gameWin')
+      }
+      const timerId = setTimeout(()=>setGameState('next'), 3000)
       return ()=>clearTimeout(timerId)
     }
   }, [gameState])
   
+  const skip = ()=>{
+    if (gameState==='end') setGameState('next')
+  }
   
   const next = ()=>{
-    setPlayerSelected(null)
-    setEnemySelected(null)
-    setGameState('search')
+    if (['battleWin', 'battleDraw', 'battleLost'].includes(gameResult as GameResult)) {
+      setGameState('start')
+      setPlayerChoice(null)
+      setEnemyChoice(null)
+      setBattleResult(null)
+      setGameResult(null)
+    }
+    else if ('gameLost'===gameResult) {
+      setGameState('search')
+      setTourNumber(1)
+      setEnemy(null)
+      setPlayerChoice(null)
+      setEnemyChoice(null)
+      setEnemyPts(0)
+      setPlayerPts(0)
+      setBattleResult(null)
+    }
+    else if ('tourWin'===gameResult) {
+      setGameState('search')
+      setTourNumber(tourNumber+1)
+      setEnemy(null)
+      setPlayerChoice(null)
+      setEnemyChoice(null)
+      setEnemyPts(0)
+      setPlayerPts(0)
+      setBattleResult(null)
+    }
+    else if ('gameWin'===gameResult) { /* go to /main-menu */ }
   }
   
   
-  const rockBgc = function(){
-    let bgc = `url(${btnRock})`
-    if (playerSelected==='rock') bgc = `url(${btnRockActive})`
-    if (gameState!=='start') bgc = 'linear-gradient(#00000088, #00000088), '+bgc
-    return bgc
-  }()
-  const scissorsBgc = function(){
-    let bgc = `url(${btnScissors})`
-    if (playerSelected==='scissors') bgc = `url(${btnScissorsActive})`
-    if (gameState!=='start') bgc = 'linear-gradient(#00000088, #00000088), '+bgc
-    return bgc
-  }()
-  const paperBgc = function(){
-    let bgc = `url(${btnPaper})`
-    if (playerSelected==='paper') bgc = `url(${btnPaperActive})`
-    if (gameState!=='start') bgc = 'linear-gradient(#00000088, #00000088), '+bgc
-    return bgc
+  
+  const [resultMsg, resultDescription, resultAction] = function(){
+    if (gameResult==='battleWin') return ['Победа', '', 'Продолжить']
+    if (gameResult==='battleDraw') return ['Ничья', '', 'Продолжить']
+    if (gameResult==='battleLost') return ['Проигрыш', '', 'Продолжить']
+    if (gameResult==='gameLost') return ['Вы проиграли', '', 'Начать заново']
+    if (gameResult==='tourWin') return ['Вы победили!', '', 'Следующий тур']
+    if (gameResult==='gameWin') return [
+      'Вы выиграли!',
+      'Админ свяжется с вами для вручения приза.',
+      'Главное меню'
+    ]
+    return ['', '']
   }()
   
   
   const leftHandProps = function(){
-    const img = gameState === 'end' ? nameToImg[enemySelected + ''] : rock
+    const img = gameState === 'end' ? nameToImg[enemyChoice + ''] : rock
     return {
       img,
       isShrink: img===rock,
@@ -209,7 +239,7 @@ React.memo(
     }
   }()
   const rightHandProps = function(){
-    const img = gameState === 'end' ? nameToImg[playerSelected + ''] : rock
+    const img = gameState === 'end' ? nameToImg[playerChoice + ''] : rock
     return {
       img,
       isShrink: img===rock,
@@ -226,7 +256,7 @@ React.memo(
     <Pages.ContentClampAspectRatio>
       
       
-      <Content>
+      <Content onClick={skip}>
         <Bgc />
         <Rays src={rays} isRotating={gameState==='end'}/>
         
@@ -251,7 +281,7 @@ React.memo(
             <PtsContainer><Pts>{enemyPts}</Pts></PtsContainer>
             <Tour>
               <div>Тур</div>
-              <div>3/20</div>
+              <div>{tourNumber}/{tourData.tourLevel}</div>
             </Tour>
             <PtsContainer><Pts>{playerPts}</Pts></PtsContainer>
             <NameContainer><Name>{tourData.playerName}</Name></NameContainer>
@@ -262,24 +292,21 @@ React.memo(
             <ActionButton
               img={btnRock}
               activeImg={btnRockActive}
-              isActive={playerSelected==='rock'}
-              disabled={gameState!=='start'}
+              isActive={playerChoice==='rock'}
               isFaded={['search'].includes(gameState)}
               onClick={()=>selectAction('rock')}
             />
             <ActionButton
               img={btnScissors}
               activeImg={btnScissorsActive}
-              isActive={playerSelected==='scissors'}
-              disabled={gameState!=='start'}
+              isActive={playerChoice==='scissors'}
               isFaded={['search'].includes(gameState)}
               onClick={()=>selectAction('scissors')}
             />
             <ActionButton
               img={btnPaper}
               activeImg={btnPaperActive}
-              isActive={playerSelected==='paper'}
-              disabled={gameState!=='start'}
+              isActive={playerChoice==='paper'}
               isFaded={['search'].includes(gameState)}
               onClick={()=>selectAction('paper')}
             />
@@ -291,10 +318,18 @@ React.memo(
       
       {gameState==='next' && <ResultDialogFrame>
         <ResultDialog>
-          <div>Результат</div>
-          <Button css={ButtonStyle.button} onClick={next}>
-            Продолжить
-          </Button>
+          <ResultDescription>
+            <div>{resultMsg}</div>
+            {resultDescription && <div>{resultDescription}</div>}
+          </ResultDescription>
+          {gameResult==='gameWin' && <Link to={'/main-menu'}>
+            <Button css={ButtonStyle.button}>
+              {resultAction}
+            </Button>
+          </Link>}
+          {gameResult!=='gameWin' && <Button css={ButtonStyle.button} onClick={next}>
+            {resultAction}
+          </Button>}
         </ResultDialog>
       </ResultDialogFrame>}
       
@@ -475,11 +510,21 @@ const ResultDialog = styled.div`
   width: 100%;
   height: 100%;
   border-radius: 30px;
-  background: #00000088;
+  background: #000000cc;
   padding: 20px;
   display: grid;
   grid-template-rows: 1fr auto;
   place-items: center;
+  gap: 14px;
+`
+const ResultDescription = styled.div`
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: repeat(auto-fit, auto);
+  place-items: center;
   color: white;
   ${Txt.large4};
+  line-height: 129%;
+  text-align: center;
 `
