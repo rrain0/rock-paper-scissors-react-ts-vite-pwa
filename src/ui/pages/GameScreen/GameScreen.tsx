@@ -30,6 +30,7 @@ import row = EmotionCommon.row
 import center = EmotionCommon.center
 import rotateAnim = EmotionCommon.rotateAnim
 import awaitValue = AsyncUtils.awaitValue
+import awaitCallback = AsyncUtils.awaitCallback
 
 
 
@@ -98,8 +99,7 @@ const nameToImg = {
 }
 
 const timeOfSingleShake = 700 // ms
-const shakeDelay = 500 //ms
-const fullShakeAnim = shakeDelay + timeOfSingleShake*3
+const fullShakeAnim = timeOfSingleShake*3
 
 type GamesState = 'search'|'start'|'game'|'end'|'next'
 
@@ -233,27 +233,24 @@ React.memo(
   
   
   const leftHandProps = function(){
-    const img = gameState === 'end' ? nameToImg[enemyChoice + ''] : rock
+    const img = ['end','next'].includes(gameState) ? nameToImg[enemyChoice + ''] : rock
     return {
       src: img,
       isShrink: img===rock,
-      isPulledOut: ['game','end'].includes(gameState),
     }
   }()
   const rightHandProps = function(){
-    const img = gameState === 'end' ? nameToImg[playerChoice + ''] : rock
+    const img = ['end','next'].includes(gameState) ? nameToImg[playerChoice + ''] : rock
     return {
       src: img,
       isShrink: img===rock,
-      isPulledOut: ['game','end'].includes(gameState),
-      /* style: {
-       translate: '-20% -15%',
-       } */
     }
   }()
   
   const onAnimation = (ev: React.AnimationEvent)=>{
-    if ([shakeLeftAnim.name, shakeRightAnim.name].includes(ev.animationName)) play()
+    if ([shakeLeftAnim.name, shakeRightAnim.name].includes(ev.animationName)) {
+      void awaitCallback(timeOfSingleShake*0.33, play)
+    }
   }
   
   
@@ -305,7 +302,7 @@ React.memo(
             <Ava img={tourData.playerAva} />
           </StatusBar>
           <div/>
-          {gameState!=='game' && <ActionBar>
+          {['search','start'].includes(gameState) && <ActionBar>
             <ActionButton
               img={btnRock}
               activeImg={btnRockActive}
@@ -453,16 +450,14 @@ const Tour = styled.div`
 
 const shakeLeftAnim = keyframes`
   0% { rotate: 0turn }
-  25% { rotate: -0.15turn }
-  50% { rotate: 0turn }
-  75% { rotate: 0.15turn }
+  33% { rotate: -0.05turn }
+  66% { rotate: 0.05turn }
   100% { rotate: 0turn }
 `
 const shakeRightAnim = keyframes`
   0% { rotate: 0turn }
-  25% { rotate: 0.15turn }
-  50% { rotate: 0turn }
-  75% { rotate: -0.15turn }
+  33% { rotate: 0.05turn }
+  66% { rotate: -0.05turn }
   100% { rotate: 0turn }
 `
 const HandContainer = styled.div<{
@@ -476,40 +471,23 @@ const HandContainer = styled.div<{
   ${p=>!p.isRight && css`left: -100%;`};
   ${p=>p.isRight && css`right: -100%;`};
   ${p=>p.isShaking && !p.isRight && css`
-    animation: ${shakeLeftAnim} ${timeOfSingleShake}ms linear infinite;
-    animation-delay: ${shakeDelay}ms;
+    animation: ${shakeLeftAnim} ${timeOfSingleShake}ms linear 3;
   `};
   ${p=>p.isShaking && p.isRight && css`
-    animation: ${shakeRightAnim} ${timeOfSingleShake}ms linear infinite;
-    animation-delay: ${shakeDelay}ms;
+    animation: ${shakeRightAnim} ${timeOfSingleShake}ms linear 3;
   `};
-`
-const pullOutLeftAnim = keyframes`
-  from { translate: 0 0 }
-  to { translate: 70px -10px }
-`
-const pullOutRightAnim = keyframes`
-  from { translate: 0 0 }
-  to { translate: -70px -10px }
 `
 const Hand = styled.img<{
   isRight?: boolean,
-  isPulledOut: boolean,
   isShrink: boolean,
 }>`
   position: absolute;
   bottom: 20%;
-  ${p=>!p.isRight && css`left: 50%;`};
-  ${p=>p.isRight && css`right: 50%;`};
+  ${p=>!p.isRight && css`left: 54%;`};
+  ${p=>p.isRight && css`right: 54%;`};
   height: calc(90% * ${p=>(p.isShrink ? 0.85 : 1)});
   width: auto;
   ${p=>p.isRight && css`scale: -1 1;`};
-  ${p=>p.isPulledOut && !p.isRight
-    && css`animation: ${pullOutLeftAnim} ${shakeDelay}ms linear 1 forwards`
-  };
-  ${p=>p.isPulledOut && p.isRight
-    && css`animation: ${pullOutRightAnim} ${shakeDelay}ms linear 1 forwards`
-  };
 `
 
 
@@ -540,7 +518,7 @@ const ActionButton = styled(Button)<{
 
 const ResultDialogFrame = styled.section`
   ${abs};
-  padding: 60px 100px;
+  padding: 120px 100px 20px 100px;
   ${center};
 `
 const ResultDialog = styled.div`
