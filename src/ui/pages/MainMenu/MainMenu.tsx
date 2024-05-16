@@ -28,6 +28,7 @@ React.memo(
       <Link to={'/tournament/1'}>
         <Button css={ButtonStyle.button}>Турнир</Button>
       </Link>
+      
     </Pages.ContentClampAspectRatio>
   </Pages.Page>
 })

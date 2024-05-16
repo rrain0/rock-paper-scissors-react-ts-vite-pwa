@@ -2,6 +2,7 @@ import styled from '@emotion/styled'
 import React from 'react'
 import parse from 'html-react-parser'
 import { Link, useParams } from 'react-router-dom'
+import PageBackBtn from 'src/ui/components/PageBackBtn/PageBackBtn.tsx'
 import { Pages } from 'src/ui/components/Pages/Pages'
 import rays from '@img/rays.png'
 import trophy from '@img/trophy-award-laurel-wreath-composition-with-realistic-image-of-golden-cup-decorated-with-garland-with-reflection_1284-32301.jpg'
@@ -52,6 +53,8 @@ React.memo(
         <Link to={'/game-screen'}>
           <Btn>Участвовать</Btn>
         </Link>
+        
+        <PageBackBtn />
         
       </Layout>
     </Pages.ContentClampAspectRatio>

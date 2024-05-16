@@ -4,8 +4,9 @@ import rays from '@img/rays.png'
 import { AsyncUtils } from '@util/common/AsyncUtils.ts'
 import { MathUtils } from '@util/common/MathUtils.ts'
 import { Link } from 'react-router-dom'
+import PageBackBtn from 'src/ui/components/PageBackBtn/PageBackBtn.tsx'
 import { Pages } from 'src/ui/components/Pages/Pages'
-import React, { AnimationEvent, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import swing from '@audio/swing.mp3'
 import enemyAva from '@img/enemy-ava.jpg'
 import playerAva from '@img/player-ava.jpg'
@@ -99,7 +100,7 @@ const nameToImg = {
 }
 
 const timeOfSingleShake = 700 // ms
-const fullShakeAnim = timeOfSingleShake*3
+const fullShakeAnim = timeOfSingleShake*2.5
 
 type GamesState = 'search'|'start'|'game'|'end'|'next'
 
@@ -248,7 +249,8 @@ React.memo(
   }()
   
   const onAnimation = (ev: React.AnimationEvent)=>{
-    if ([shakeLeftAnim.name, shakeRightAnim.name].includes(ev.animationName)) {
+    if ([shakeLeftAnim.name, shakeLeftHalfAnim.name,
+      shakeRightAnim.name, shakeRightHalfAnim.name].includes(ev.animationName)) {
       void awaitCallback(timeOfSingleShake*0.33, play)
     }
   }
@@ -282,6 +284,8 @@ React.memo(
             isRight
           />
         </HandContainer>
+        
+        <PageBackBtn />
         
         <Layout>
           
@@ -454,15 +458,25 @@ const shakeLeftAnim = keyframes`
   66% { rotate: 0.05turn }
   100% { rotate: 0turn }
 `
+const shakeLeftHalfAnim = keyframes`
+  0% { rotate: 0turn }
+  50% { rotate: -0.05turn }
+  100% { rotate: 0turn }
+`
 const shakeRightAnim = keyframes`
   0% { rotate: 0turn }
   33% { rotate: 0.05turn }
   66% { rotate: -0.05turn }
   100% { rotate: 0turn }
 `
+const shakeRightHalfAnim = keyframes`
+  0% { rotate: 0turn }
+  50% { rotate: 0.05turn }
+  100% { rotate: 0turn }
+`
 const HandContainer = styled.div<{
-  isRight?: boolean,
-  isShaking: boolean,
+  isRight?: boolean
+  isShaking: boolean
 }>`
   position: absolute;
   bottom: 0;
@@ -471,15 +485,21 @@ const HandContainer = styled.div<{
   ${p=>!p.isRight && css`left: -100%;`};
   ${p=>p.isRight && css`right: -100%;`};
   ${p=>p.isShaking && !p.isRight && css`
-    animation: ${shakeLeftAnim} ${timeOfSingleShake}ms linear 3;
+    animation:
+      ${shakeLeftAnim} ${timeOfSingleShake}ms linear 2,
+      ${shakeLeftHalfAnim} ${timeOfSingleShake/2}ms linear 1;
+    animation-delay: 0ms, ${timeOfSingleShake*2}ms;
   `};
   ${p=>p.isShaking && p.isRight && css`
-    animation: ${shakeRightAnim} ${timeOfSingleShake}ms linear 3;
+    animation:
+      ${shakeRightAnim} ${timeOfSingleShake}ms linear 2,
+      ${shakeRightHalfAnim} ${timeOfSingleShake/2}ms linear 1;
+    animation-delay: 0ms, ${timeOfSingleShake*2}ms;
   `};
 `
 const Hand = styled.img<{
-  isRight?: boolean,
-  isShrink: boolean,
+  isRight?: boolean
+  isShrink: boolean
 }>`
   position: absolute;
   bottom: 20%;
@@ -491,6 +511,8 @@ const Hand = styled.img<{
 `
 
 
+
+
 const ActionBar = styled.section`
   height: 80px;
   ${row};
@@ -498,12 +520,12 @@ const ActionBar = styled.section`
   gap: 50px;
 `
 const ActionButton = styled(Button)<{
-  img: string,
-  activeImg: string,
-  isActive: boolean,
-  isFaded: boolean,
+  img: string
+  activeImg: string
+  isActive: boolean
+  isFaded: boolean
 }>`
-  ${ButtonStyle.gameAciton};
+  ${ButtonStyle.gameAction};
   background-image: url(${p=>p.isActive ? p.activeImg : p.img});
   
   ::after {

@@ -1,5 +1,6 @@
 import { css } from '@emotion/react'
 import buttonBgc from '@img/button-bgc.png'
+import btnExit from '@img/btn-exit.png'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import Txt = EmotionCommon.Txt
 
@@ -20,13 +21,22 @@ export namespace ButtonStyle {
   `
   
   
-  export const gameAciton = css`
+  export const gameAction = css`
     height: 100%;
     width: auto;
     aspect-ratio: 1;
     background-size: cover;
     background-position: center;
     border-radius: 999999px;
+  `
+  
+  
+  export const backBtn = css`
+    width: 30px;
+    height: 30px;
+    background-image: url(${btnExit});
+    background-size: cover;
+    background-position: center;
   `
   
   
