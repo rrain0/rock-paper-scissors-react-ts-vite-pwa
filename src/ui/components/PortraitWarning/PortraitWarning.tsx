@@ -1,11 +1,13 @@
 import styled from '@emotion/styled'
 import { useViewportDimens } from '@util/react/useViewportDimens.ts'
 import React from 'react'
+import { useRecoilValue } from 'recoil'
+import { AppRecoil } from 'src/recoil/state/AppRecoil.ts'
 import Modal from 'src/ui/components/Modal/Modal.tsx'
 import ModalPortal from 'src/ui/components/Modal/ModalPortal.tsx'
 import { ModalStyle } from 'src/ui/components/Modal/ModalStyle.ts'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
-import turnToLandImg from '@img/turn-to-landscape-with-text.png'
+//import turnToLandImg from '@img/turn-to-landscape-with-text.png'
 import center = EmotionCommon.center
 
 
@@ -13,6 +15,7 @@ import center = EmotionCommon.center
 const PortraitWarning =
 React.memo(
 ()=>{
+  const { resources } = useRecoilValue(AppRecoil)
   
   const { isPortrait } = useViewportDimens()
   
@@ -22,7 +25,7 @@ React.memo(
     { isPortrait && <ModalPortal>
       <Modal css={ModalStyle.modal}>
         <Frame>
-          <TurnToLandImg alt="Переверните устройство" src={turnToLandImg}/>
+          <TurnToLandImg alt="Переверните устройство" src={resources.turnToLandImg.dataUrl}/>
         </Frame>
       </Modal>
     </ModalPortal> }

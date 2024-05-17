@@ -1,6 +1,6 @@
 import { css } from '@emotion/react'
-import buttonBgc from '@img/button-bgc.png'
-import btnExit from '@img/btn-exit.png'
+//import buttonBgc from '@img/button-bgc.png'
+//import btnExit from '@img/btn-exit-white.png'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import Txt = EmotionCommon.Txt
 
@@ -13,7 +13,6 @@ export namespace ButtonStyle {
   export const button = css`
     width: 200px;
     height: 55px;
-    background: url(${buttonBgc});
     background-size: 100% 100%;
     color: white;
     ${Txt.large2};
@@ -34,7 +33,7 @@ export namespace ButtonStyle {
   export const backBtn = css`
     width: 30px;
     height: 30px;
-    background-image: url(${btnExit});
+    //background-image: url(${0/*btnExit*/});
     background-size: cover;
     background-position: center;
   `

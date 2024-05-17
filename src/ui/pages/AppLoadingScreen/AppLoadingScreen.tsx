@@ -1,10 +1,14 @@
 import styled from '@emotion/styled'
-import React, { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { FileUtils } from '@util/file/FileUtils.ts'
+import React, { useEffect, useMemo } from 'react'
+import { useRecoilState } from 'recoil'
+import { AppRecoil } from 'src/recoil/state/AppRecoil.ts'
 import { Pages } from 'src/ui/components/Pages/Pages'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import abs = EmotionCommon.abs
-import appLoadingScreen from '@img/app-loading-screen.png'
+//import appLoadingScreen from '@img/app-loading-screen.png'
+import fetchToBlob = FileUtils.fetchToBlob
+import blobToDataUrl = FileUtils.blobToDataUrl
 
 
 
@@ -12,25 +16,81 @@ import appLoadingScreen from '@img/app-loading-screen.png'
 const AppLoadingScreen =
 React.memo(
 ()=>{
+  const [{ resources }, setAppState] = useRecoilState(AppRecoil)
   
-  const [progress, setProgress] = useState(0)
+  const progress = useMemo(
+    ()=>{
+      const entreies = Object.entries(resources)
+      return entreies.reduce(
+        (cnt, [name, resData])=>resData.isReady ? cnt+1 : cnt,
+        0
+      ) / entreies.length * 100
+    },
+    [resources]
+  )
+  useEffect(()=>{
+    if (progress===100) setAppState(s=>({ ...s, resourcesAreReady: true }))
+  }, [progress])
   
   useEffect(() => {
-    const intervalId = setInterval(
-      ()=>{
-        setProgress(p=>p+10)
-      },
-      400
-    )
-    return ()=>clearInterval(intervalId)
-  }, [])
+    let hasAnyChanges = false
+    const newRess = { ...resources }
+    for (const name in newRess) {
+      const res = newRess[name]
+      const newRes = { ...res }
+      let hasChanges = false
+      if (!newRes.isLoading && !newRes.isReady) {
+        hasAnyChanges = true
+        hasChanges = true
+        newRes.isLoading = true
+        if (newRes.type==='dataUrl') {
+          ;(async()=>{
+            const blob = await fetchToBlob(newRes.url)
+            const dataUrl = await blobToDataUrl(blob)
+            setAppState(s => ({
+              ...s,
+              resources: {
+                ...s.resources,
+                [name]: {
+                  ...s.resources[name],
+                  isLoading: false,
+                  isReady: true,
+                  dataUrl,
+                }
+              },
+            }))
+          })()
+        }
+        else if (newRes.type==='image') {
+          newRes.image.onload = ()=>{
+            setAppState(s => ({
+              ...s,
+              resources: {
+                ...s.resources,
+                [name]: {
+                  ...s.resources[name],
+                  isLoading: false,
+                  isReady: true,
+                }
+              },
+            }))
+          }
+          newRes.image.src = newRes.url
+        }
+      }
+      if (hasChanges) newRess[name] = newRes
+    }
+    
+    if (hasAnyChanges) setAppState(s=>({ ...s, resources: newRess }))
+  }, [resources])
   
   
-  if (progress >= 100) return <Navigate to={'/main-menu'} />
   return <Pages.Page>
     <Pages.ContentClampAspectRatio>
       
-      <Bgc/>
+      <Bgc
+        style={{ backgroundImage: `url(${resources.appLoadingScreen.dataUrl})` }}
+      />
       
       <PageLayout>
         <ProgressBar progress={progress}/>
@@ -45,9 +105,10 @@ export default AppLoadingScreen
 
 const Bgc = styled.div`
   ${abs};
-  background-image: url(${appLoadingScreen});
-  background-size: cover;
+  //background-image: url(${0/*appLoadingScreen*/});
+  background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
 `
 
 
@@ -70,7 +131,7 @@ const ProgressBar = styled.article<{
   width: 240px;
   background-image: linear-gradient(
     to right,
-    #dd0000 0% ${p=>p.progress}%,
+    #5ff900 0% ${p=>p.progress}%,
     transparent ${p=>p.progress}% 100%
   );
 `

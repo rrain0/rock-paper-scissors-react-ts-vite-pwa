@@ -12,7 +12,7 @@ import centerAll = EmotionCommon.centerAll
 
 export namespace Pages {
   
-  import ifNaN = MathUtils.ifNaN
+  
   export const fillViewport = css`
     min-width: 220px;
     width: 100dvw;
@@ -24,7 +24,7 @@ export namespace Pages {
   export const Page = styled.main`
     width: 100dvw;
     height: 100dvh;
-    background: black;
+    background: #004bbc;
     position: relative;
     ${center};
   `

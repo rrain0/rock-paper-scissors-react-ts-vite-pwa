@@ -17,10 +17,10 @@ import { tournamentRouting } from 'src/ui/pages/TournamentInfo/routing.tsx'
 
 // path: '/ <check here>'
 const rootRoutes: RouteObject[] = [
-  {
-    path: 'app-loading-screen'+'/*',
+  /* {
+    path: 'app-loading-screen'+'/!*',
     children: appLoadingScreenRouting,
-  },
+  }, */
   {
     path: 'main-menu'+'/*',
     children: mainMenuRouting,
@@ -35,7 +35,7 @@ const rootRoutes: RouteObject[] = [
   },
   {
     path: '*',
-    element: <Navigate to={'/app-loading-screen'} replace />
+    element: <Navigate to={'/main-menu'} replace />
   },
 ]
 const router = createBrowserRouter(rootRoutes)

@@ -2,15 +2,17 @@ import { keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { useRecoilValue } from 'recoil'
+import { AppRecoil } from 'src/recoil/state/AppRecoil.ts'
 import { Pages } from 'src/ui/components/Pages/Pages'
 import Button from 'src/ui/elements/Button/Button.tsx'
 import { ButtonStyle } from 'src/ui/elements/Button/ButtonStyle.ts'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import center = EmotionCommon.center
 import abs = EmotionCommon.abs
-import rays from '@img/rays.png'
-import leftChar from '@img/char-left.png'
-import rightChar from '@img/char-right.png'
+//import rays from '@img/rays.png'
+//import leftChar from '@img/char-left.png'
+//import rightChar from '@img/char-right.png'
 
 
 
@@ -18,15 +20,22 @@ import rightChar from '@img/char-right.png'
 const MainMenu =
 React.memo(
 ()=>{
+  const { resources } = useRecoilValue(AppRecoil)
+  
+  
   return <Pages.Page>
     <Pages.ContentClampAspectRatio>
       <BgcColor/>
-      <BgcRays/>
+      <BgcRays
+        style={{ maskImage: `url(${resources.rays.dataUrl})` }}
+      />
       
-      <LeftChar src={leftChar}/>
-      <RightChar src={rightChar}/>
+      <LeftChar src={resources.leftChar.dataUrl}/>
+      <RightChar src={resources.rightChar.dataUrl}/>
       <Link to={'/tournament/1'}>
-        <Button css={ButtonStyle.button}>Турнир</Button>
+        <Button css={ButtonStyle.button}
+          style={{ backgroundImage: `url(${resources.buttonBgc.dataUrl})` }}
+        >Турнир</Button>
       </Link>
       
     </Pages.ContentClampAspectRatio>
@@ -48,7 +57,7 @@ const BgcRays = styled.div`
   ${abs};
   //background: #ff6c02;
   background: #146dcc;
-  mask-image: url(${rays});
+  //mask-image: url(${0/*rays*/});
   mask-mode: alpha;
   mask-position: center;
   mask-size: cover;

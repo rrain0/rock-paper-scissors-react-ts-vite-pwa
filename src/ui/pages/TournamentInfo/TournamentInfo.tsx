@@ -1,22 +1,29 @@
 import styled from '@emotion/styled'
-import React from 'react'
+import React, { useLayoutEffect, useRef } from 'react'
 import parse from 'html-react-parser'
 import { Link, useParams } from 'react-router-dom'
+import { useRecoilValue } from 'recoil'
+import { AppRecoil } from 'src/recoil/state/AppRecoil.ts'
 import PageBackBtn from 'src/ui/components/PageBackBtn/PageBackBtn.tsx'
 import { Pages } from 'src/ui/components/Pages/Pages'
-import rays from '@img/rays.png'
-import trophy from '@img/trophy-award-laurel-wreath-composition-with-realistic-image-of-golden-cup-decorated-with-garland-with-reflection_1284-32301.jpg'
+//import rays from '@img/rays.png'
 import Button from 'src/ui/elements/Button/Button.tsx'
 import { ButtonStyle } from 'src/ui/elements/Button/ButtonStyle.ts'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
 import Txt = EmotionCommon.Txt
 import abs = EmotionCommon.abs
 
+//const trophy = 'https://img.freepik.com/free-vector/trophy-award-laurel-wreath-composition-with-realistic-image-of-golden-cup-decorated-with-garland-with-reflection_1284-32301.jpg?w=740&t=st=1713073149~exp=1713073749~hmac=2ee2e4d49d713eaf20ce5f86d1810c7835851c839b2f169b55bc62aab5d7c12c'
+
+
+
 
 
 const TournamentInfo =
 React.memo(
 ()=>{
+  const { resources } = useRecoilValue(AppRecoil)
+  
   const tournamentId = useParams().tournamentId!
   
   const tournamentName = `Турнир ${tournamentId}`
@@ -28,11 +35,23 @@ React.memo(
     <p>4. Правило 4</p>
   `
   
+  
+  const trophyFrameRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(()=>{
+    const tFrame = trophyFrameRef.current!
+    const img = resources.trophy.image/* .cloneNode() as HTMLImageElement */
+    img.style.minHeight = '0'
+    img.style.minWidth = '0'
+    tFrame.append(img)
+    return ()=>void tFrame.removeChild(img)
+  },[])
+  
+  
   return <Pages.Page>
     <Pages.ContentClampAspectRatio>
       <Layout>
         <Bgc />
-        <Rays src={rays}/>
+        <Rays src={resources.rays.dataUrl}/>
         
         <DescriptionContainer>
           <TourDescription>
@@ -41,8 +60,10 @@ React.memo(
             <div/>
             <TourRulesTitle>Правила турнира</TourRulesTitle>
           </TourDescription>
-          <TrophyFrame>
-            <Trophy/>
+          <TrophyFrame ref={trophyFrameRef}>
+            {/* <Trophy
+              style={{ backgroundImage: `url(${resources.trophy.dataUrl})` }}
+            /> */}
           </TrophyFrame>
           <Rules>
             {parse(tournamentRules)}
@@ -51,7 +72,11 @@ React.memo(
         </DescriptionContainer>
         
         <Link to={'/game-screen'}>
-          <Btn>Участвовать</Btn>
+          <Btn
+            style={{ backgroundImage: `url(${resources.buttonBgc.dataUrl})` }}
+          >
+            Участвовать
+          </Btn>
         </Link>
         
         <PageBackBtn />
@@ -144,7 +169,7 @@ const TrophyFrame = styled.div`
 const Trophy = styled.div`
   width: 100%;
   height: 100%;
-  background: url(${trophy});
+  //background: url(${0/*trophy*/});
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;

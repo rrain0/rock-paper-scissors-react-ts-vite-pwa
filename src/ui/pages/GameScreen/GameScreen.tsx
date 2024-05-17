@@ -1,25 +1,25 @@
 import { css, keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
-import rays from '@img/rays.png'
 import { AsyncUtils } from '@util/common/AsyncUtils.ts'
 import { MathUtils } from '@util/common/MathUtils.ts'
 import { Link } from 'react-router-dom'
+import { useRecoilValue } from 'recoil'
+import { AppRecoil } from 'src/recoil/state/AppRecoil.ts'
 import PageBackBtn from 'src/ui/components/PageBackBtn/PageBackBtn.tsx'
 import { Pages } from 'src/ui/components/Pages/Pages'
-import React, { useEffect, useState } from 'react'
-import swing from '@audio/swing.mp3'
-import enemyAva from '@img/enemy-ava.jpg'
-import playerAva from '@img/player-ava.jpg'
-import unknownAva from '@img/ava-unknown.png'
-import btnRock from '@img/btn-rock.png'
-import btnRockActive from '@img/btn-rock-active.png'
-import btnScissors from '@img/btn-scissors.png'
-import btnScissorsActive from '@img/btn-scissors-active.png'
-import btnPaper from '@img/btn-paper.png'
-import btnPaperActive from '@img/btn-paper-active.png'
-import rock from '@img/rock.png'
-import scissors from '@img/scissors.png'
-import paper from '@img/paper.png'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+//import rays from '@img/rays.png'
+//import swing from '@audio/swing.mp3'
+//import unknownAva from '@img/ava-unknown.png'
+//import btnRock from '@img/btn-rock.png'
+//import btnRockActive from '@img/btn-rock-active.png'
+//import btnScissors from '@img/btn-scissors.png'
+//import btnScissorsActive from '@img/btn-scissors-active.png'
+//import btnPaper from '@img/btn-paper.png'
+//import btnPaperActive from '@img/btn-paper-active.png'
+//import rock from '@img/rock.png'
+//import scissors from '@img/scissors.png'
+//import paper from '@img/paper.png'
 import Button from 'src/ui/elements/Button/Button.tsx'
 import { ButtonStyle } from 'src/ui/elements/Button/ButtonStyle.ts'
 import { EmotionCommon } from 'src/ui/style/EmotionCommon.ts'
@@ -35,12 +35,15 @@ import awaitCallback = AsyncUtils.awaitCallback
 
 
 
+//const enemyAva = 'https://sun3-9.userapi.com/s/v1/if2/R2uC-AgaqmhAAQg2GVu98lC-hjNXFJX8YIWsx5wWr41fat8zv7Rv6Ir57T7NA77kQHj_mRGd5LFmZ8DPf-pBhNUZ.jpg?quality=95&crop=960,1193,319,319&as=50x50,100x100,200x200&ava=1&u=0QT7OygNsVaalrxEYgoHT0KcIz_tCOEAp32nf3FHWBI&cs=100x100'
+//const playerAva = 'https://sun3-9.userapi.com/s/v1/if2/R2uC-AgaqmhAAQg2GVu98lC-hjNXFJX8YIWsx5wWr41fat8zv7Rv6Ir57T7NA77kQHj_mRGd5LFmZ8DPf-pBhNUZ.jpg?quality=95&crop=960,1193,319,319&as=50x50,100x100,200x200&ava=1&u=0QT7OygNsVaalrxEYgoHT0KcIz_tCOEAp32nf3FHWBI&cs=100x100'
+
 
 type Player = {
-  ava: string
+  ava: HTMLImageElement
   name: string
 }
-async function findEnemy(): Promise<Player> {
+async function findEnemy(enemyAva: HTMLImageElement): Promise<Player> {
   const enemies: Player[] = [
     {
       ava: enemyAva,
@@ -92,12 +95,12 @@ function getBattleResult(you: RockPaperScissors, enemy: RockPaperScissors): Batt
 
 type GameResult = 'battleWin' | 'battleDraw' | 'battleLost' | 'tourWin' | 'gameLost' | 'gameWin'
 
-const nameToImg = {
+const nameToImg = (rock: string, scissors: string, paper: string)=>({
   null: rock,
   rock: rock,
   scissors: scissors,
   paper: paper,
-}
+})
 
 const timeOfSingleShake = 700 // ms
 const fullShakeAnim = timeOfSingleShake*2.5
@@ -108,13 +111,17 @@ const GameScreen =
 React.memo(
 ()=>{
   
+  const { resources } = useRecoilValue(AppRecoil)
+  
   const tourData = {
     tourLevel: 3,
-    playerAva: playerAva,
+    playerAva: resources.playerAva.image,
     playerName: 'Имя игрока',
   }
   
-  const [play] = useSound(swing)
+  const [play] = useSound(resources.swing.dataUrl,{
+    onload: () => { console.log('sound was loaded') }
+  })
   
   const [gameState, setGameState] = useState<GamesState>('search')
   const [tourNumber, setTourNumber] = useState(1)
@@ -135,7 +142,7 @@ React.memo(
   
   useEffect(()=>{
     if (gameState==='search') {
-      findEnemy().then(it=>{
+      findEnemy(resources.enemyAva.image).then(it=>{
         setEnemy(it)
         setGameState('start')
       })
@@ -234,17 +241,21 @@ React.memo(
   
   
   const leftHandProps = function(){
-    const img = ['end','next'].includes(gameState) ? nameToImg[enemyChoice + ''] : rock
+    const img = ['end','next'].includes(gameState)
+      ? nameToImg(resources.rock.dataUrl, resources.scissors.dataUrl, resources.paper.dataUrl)[enemyChoice + '']
+      : resources.rock.dataUrl
     return {
       src: img,
-      isShrink: img===rock,
+      isShrink: img===resources.rock.dataUrl,
     }
   }()
   const rightHandProps = function(){
-    const img = ['end','next'].includes(gameState) ? nameToImg[playerChoice + ''] : rock
+    const img = ['end','next'].includes(gameState)
+      ? nameToImg(resources.rock.dataUrl, resources.scissors.dataUrl, resources.paper.dataUrl)[playerChoice + '']
+      : resources.rock.dataUrl
     return {
       src: img,
-      isShrink: img===rock,
+      isShrink: img===resources.rock.dataUrl,
     }
   }()
   
@@ -256,13 +267,53 @@ React.memo(
   }
   
   
+  
+  const statusBarRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(()=>{
+    const sBar = statusBarRef.current!
+    const img = function(){
+      if (gameState!=='search')
+        return resources.enemyAva.image/* .cloneNode() as HTMLImageElement */
+      const img = new Image()
+      img.src = resources.unknownAva.dataUrl
+      return img
+    }()
+    img.style.minHeight = '0'
+    img.style.minWidth = '0'
+    img.style.height = '100%'
+    img.style.width = 'auto'
+    img.style.aspectRatio = '1'
+    img.style.backgroundSize = 'cover'
+    img.style.backgroundPosition = 'center'
+    img.style.borderRadius = '999999px'
+    sBar.prepend(img)
+    return ()=>void sBar.removeChild(img)
+  },[gameState])
+  useLayoutEffect(()=>{
+    const sBar = statusBarRef.current!
+    const img = resources.playerAva.image/* .cloneNode() as HTMLImageElement */
+    img.style.minHeight = '0'
+    img.style.minWidth = '0'
+    img.style.height = '100%'
+    img.style.width = 'auto'
+    img.style.aspectRatio = '1'
+    img.style.backgroundSize = 'cover'
+    img.style.backgroundPosition = 'center'
+    img.style.borderRadius = '999999px'
+    sBar.append(img)
+    return ()=>void sBar.removeChild(img)
+  },[])
+  
+  
+  
+  
   return <Pages.Page>
     <Pages.ContentClampAspectRatio>
       
       
       <Content onClick={skip}>
         <Bgc />
-        <Rays src={rays} isRotating={gameState==='end'}/>
+        <Rays src={resources.rays.dataUrl} isRotating={gameState==='end'}/>
         
         
         {gameState!=='search' && <HandContainer
@@ -289,8 +340,12 @@ React.memo(
         
         <Layout>
           
-          <StatusBar>
-            <Ava img={gameState==='search' ? unknownAva : enemyAva} />
+          <StatusBar ref={statusBarRef}>
+            
+            {/* { gameState==='search' && <Ava
+              style={{ backgroundImage: resources.unknownAva.dataUrl }}
+            />} */}
+            
             <NameContainer>
               <Name>
                 {gameState==='search' ? 'Поиск достойного противника...' : enemy!.name}
@@ -303,27 +358,29 @@ React.memo(
             </Tour>
             <PtsContainer><Pts>{playerPts}</Pts></PtsContainer>
             <NameContainer><Name>{tourData.playerName}</Name></NameContainer>
-            <Ava img={tourData.playerAva} />
+            
+            {/* <Ava style={{ backgroundImage: tourData.playerAva }} /> */}
+            
           </StatusBar>
           <div/>
           {['search','start'].includes(gameState) && <ActionBar>
             <ActionButton
-              img={btnRock}
-              activeImg={btnRockActive}
+              img={resources.btnRock.dataUrl}
+              activeImg={resources.btnRockActive.dataUrl}
               isActive={playerChoice==='rock'}
               isFaded={['search'].includes(gameState)}
               onClick={()=>selectAction('rock')}
             />
             <ActionButton
-              img={btnScissors}
-              activeImg={btnScissorsActive}
+              img={resources.btnScissors.dataUrl}
+              activeImg={resources.btnScissorsActive.dataUrl}
               isActive={playerChoice==='scissors'}
               isFaded={['search'].includes(gameState)}
               onClick={()=>selectAction('scissors')}
             />
             <ActionButton
-              img={btnPaper}
-              activeImg={btnPaperActive}
+              img={resources.btnPaper.dataUrl}
+              activeImg={resources.btnPaperActive.dataUrl}
               isActive={playerChoice==='paper'}
               isFaded={['search'].includes(gameState)}
               onClick={()=>selectAction('paper')}
@@ -341,11 +398,15 @@ React.memo(
             {resultDescription && <div>{resultDescription}</div>}
           </ResultDescription>
           {gameResult==='gameWin' && <Link to={'/main-menu'}>
-            <Button css={ButtonStyle.button}>
+            <Button css={ButtonStyle.button}
+              style={{ backgroundImage: `url(${resources.buttonBgc.dataUrl})` }}
+            >
               {resultAction}
             </Button>
           </Link>}
-          {gameResult!=='gameWin' && <Button css={ButtonStyle.button} onClick={next}>
+          {gameResult!=='gameWin' && <Button css={ButtonStyle.button} onClick={next}
+            style={{ backgroundImage: `url(${resources.buttonBgc.dataUrl})` }}
+          >
             {resultAction}
           </Button>}
         </ResultDialog>
@@ -404,11 +465,10 @@ const StatusBar = styled.section`
   height: 80px;
   padding: 6px;
 `
-const Ava = styled.div<{ img: string }>`
+const Ava = styled.div`
   height: 100%;
   width: auto;
   aspect-ratio: 1;
-  background-image: url(${p=>p.img});
   background-size: cover;
   background-position: center;
   border-radius: 999999px;

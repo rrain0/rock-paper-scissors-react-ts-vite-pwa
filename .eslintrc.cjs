@@ -18,5 +18,7 @@ module.exports = {
     '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     'no-constant-condition': 'off',
+    'no-extra-semi': 'off',
+    'no-empty': 'off',
   },
 }
