@@ -103,7 +103,7 @@ const nameToImg = (rock: string, scissors: string, paper: string)=>({
 })
 
 const timeOfSingleShake = 700 // ms
-const fullShakeAnim = timeOfSingleShake*2.5
+const fullShakeAnim = timeOfSingleShake*(2+2/3)
 
 type GamesState = 'search'|'start'|'game'|'end'|'next'
 
@@ -260,8 +260,8 @@ React.memo(
   }()
   
   const onAnimation = (ev: React.AnimationEvent)=>{
-    if ([shakeLeftAnim.name, shakeLeftHalfAnim.name,
-      shakeRightAnim.name, shakeRightHalfAnim.name].includes(ev.animationName)) {
+    if ([shakeLeftAnim.name, shakeLeftLastAnim.name,
+      shakeRightAnim.name, shakeRightLastAnim.name].includes(ev.animationName)) {
       void awaitCallback(timeOfSingleShake*0.33, play)
     }
   }
@@ -318,6 +318,7 @@ React.memo(
         
         {gameState!=='search' && <HandContainer
           isShaking={gameState==='game'}
+          isShowResult={['end','next'].includes(gameState)}
         >
           <Hand
             {...leftHandProps}
@@ -327,6 +328,7 @@ React.memo(
         <HandContainer
           isRight
           isShaking={gameState==='game'}
+          isShowResult={['end','next'].includes(gameState)}
           onAnimationStart={onAnimation}
           onAnimationIteration={onAnimation}
         >
@@ -518,10 +520,10 @@ const shakeLeftAnim = keyframes`
   66% { rotate: 0.05turn }
   100% { rotate: 0turn }
 `
-const shakeLeftHalfAnim = keyframes`
+const shakeLeftLastAnim = keyframes`
   0% { rotate: 0turn }
   50% { rotate: -0.05turn }
-  100% { rotate: 0turn }
+  100% { rotate: 0.05turn }
 `
 const shakeRightAnim = keyframes`
   0% { rotate: 0turn }
@@ -529,14 +531,15 @@ const shakeRightAnim = keyframes`
   66% { rotate: -0.05turn }
   100% { rotate: 0turn }
 `
-const shakeRightHalfAnim = keyframes`
+const shakeRightLastAnim = keyframes`
   0% { rotate: 0turn }
   50% { rotate: 0.05turn }
-  100% { rotate: 0turn }
+  100% { rotate: -0.05turn }
 `
 const HandContainer = styled.div<{
   isRight?: boolean
   isShaking: boolean
+  isShowResult: boolean
 }>`
   position: absolute;
   bottom: 0;
@@ -547,15 +550,17 @@ const HandContainer = styled.div<{
   ${p=>p.isShaking && !p.isRight && css`
     animation:
       ${shakeLeftAnim} ${timeOfSingleShake}ms linear 2,
-      ${shakeLeftHalfAnim} ${timeOfSingleShake/2}ms linear 1;
+      ${shakeLeftLastAnim} ${timeOfSingleShake*2/3}ms linear 1 forwards;
     animation-delay: 0ms, ${timeOfSingleShake*2}ms;
   `};
   ${p=>p.isShaking && p.isRight && css`
     animation:
       ${shakeRightAnim} ${timeOfSingleShake}ms linear 2,
-      ${shakeRightHalfAnim} ${timeOfSingleShake/2}ms linear 1;
+      ${shakeRightLastAnim} ${timeOfSingleShake*2/3}ms linear 1 forwards;
     animation-delay: 0ms, ${timeOfSingleShake*2}ms;
   `};
+  ${p=>p.isShowResult && !p.isRight && css`rotate: 0.05turn`}
+  ${p=>p.isShowResult && p.isRight && css`rotate: -0.05turn`}
 `
 const Hand = styled.img<{
   isRight?: boolean

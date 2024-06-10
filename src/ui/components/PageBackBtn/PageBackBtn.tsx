@@ -19,7 +19,7 @@ React.memo(
   return <BackBtnContainer>
     <Button
       css={ButtonStyle.backBtn}
-      style={{ backgroundImage: `url(${resources.btnExit})` }}
+      style={{ backgroundImage: `url(${resources.btnExit.dataUrl})` }}
       onClick={()=>navigate(-1)}
     />
   </BackBtnContainer>
